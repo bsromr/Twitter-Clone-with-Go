@@ -179,9 +179,14 @@
                 </a>
                 <a class="tweet-footer-btn" href="/{{ $.Slug }}/likeTweett/{{ $k.ID }}">
                   
-                  {{ $.LoggedInUser.ID  }} {{ $k.ID}}
-                  <i class="octicon octicon-heart" aria-hidden="true"></i>
-                  <span>{{ $k.LikeCount }}</span>
+                  <!--{{ $.LoggedInUser.ID  }} {{ $k.ID}} -->
+                  {{ if eq $.LoggedInUser.ID $k.Liked_user_id }}
+                      <i class="octicon octicon-heart" aria-hidden="true" style="color:red"></i>
+                      <span>{{ $k.LikeCount }}</span>
+                  {{else}}
+                      <i class="octicon octicon-heart" aria-hidden="true" ></i>
+                      <span>{{ $k.LikeCount }}</span>
+                  {{ end }}
                 </a>
                 <a class="tweet-footer-btn">
                   <i class="octicon octicon-mail" aria-hidden="true"></i><span> 155</span>

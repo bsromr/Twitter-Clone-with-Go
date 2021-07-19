@@ -19,9 +19,10 @@ type Relationships struct {
 
 type Tweets struct {
 	gorm.Model
-	User_id   int    `json:"user_id"`
-	Tweet     string `json:"tweet"`
-	LikeCount int    `json:"likeCount`
+	User_id       int    `json:"user_id"`
+	Tweet         string `json:"tweet"`
+	LikeCount     int    `json:"likeCount`
+	Liked_user_id int    `sql:"-"`
 }
 
 type Tweet_Info struct {

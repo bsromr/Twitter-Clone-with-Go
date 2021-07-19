@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 
@@ -64,7 +63,7 @@ func Profile(c *fiber.Ctx) error {
 	loggedInUser := getUserIdFromCookie(c)
 
 	var tweets = []types.Tweets{} //Tweets
-	result := db.Raw("Select users.name, users.slug, tweets.id, tweets.tweet, tweets.created_at, tweets.like_count, tweet_infos.liked_user_id FROM tweets LEFT JOIN users ON users.id = tweets.user_id LEFT JOIN tweet_infos ON tweet_infos.tweet_id = tweets.id WHERE users.slug = '" + c.Params("searchedUser") + "' group by (users.name, users.slug, tweets.tweet,tweets.id, tweets.created_at, tweets.like_count, tweet_infos.liked_user_id)  order by tweets.created_at DESC;").Scan(&tweets)
+	result := db.Raw("Select users.name, users.slug, tweets.id, tweets.tweet, tweets.created_at, tweets.like_count, tweet_infos.liked_user_id FROM tweets LEFT JOIN users ON users.id = tweets.user_id LEFT JOIN tweet_infos ON tweet_infos.tweet_id = tweets.id WHERE users.slug = '" + c.Params("searchedUser") + "'  order by tweets.created_at DESC;").Scan(&tweets)
 	totalTweets := result.RowsAffected
 
 	searchedUserInfo := types.Users{} //User Info belonging to the slug
@@ -94,7 +93,7 @@ func Profile(c *fiber.Ctx) error {
 }
 
 func LikeTweet(c *fiber.Ctx) error {
-	fmt.Println("searched user ID: ", c.Params("searchedUser"), "seçilen tweet id: ", c.Params("likedTweetID"))
+	//fmt.Println("searched user ID: ", c.Params("searchedUser"), "seçilen tweet id: ", c.Params("likedTweetID"))
 	db := db.DB
 
 	onlineUser := getUserIdFromCookie(c)
@@ -106,8 +105,8 @@ func LikeTweet(c *fiber.Ctx) error {
 
 	result := db.Where("tweet_id = ? and liked_user_id = ? ", c.Params("likedTweetID"), onlineUser.ID).First(&tweet_infos)
 	if result.RowsAffected > 0 {
-		fmt.Println("Silinme işlemi uygulanacak")
-		db.Where("tweet_id = ? and liked_user_id = ?", c.Params("likedTweetID"), onlineUser.ID).Delete(&tweet_infos)
+		//fmt.Println("Silinme işlemi uygulanacak")
+		db.Unscoped().Where("tweet_id = ? and liked_user_id = ?", c.Params("likedTweetID"), onlineUser.ID).Delete(&tweet_infos)
 		db.Exec("UPDATE tweets SET like_count = tweets.like_count - 1 where id = ?", c.Params("likedTweetID")) //decrease count of liked tweet
 		return c.Redirect("/" + c.Params("searchedUser"))
 	}
