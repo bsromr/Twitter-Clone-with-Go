@@ -61,10 +61,10 @@ func Profile(c *fiber.Ctx) error {
 	db := db.DB
 	//log.Println(utils.ImmutableString(c.Params("foo")))
 
-	//loggedInUser := getUserIdFromCookie(c)
+	loggedInUser := getUserIdFromCookie(c)
 
 	var tweets = []types.Tweets{} //Tweets
-	result := db.Raw("Select users.name, users.slug,tweets.id, tweets.tweet, tweets.created_at, tweets.like_count FROM tweets Left JOIN users ON users.id = tweets.user_id Left JOIN tweet_infos ON tweet_infos.tweet_id = tweets.id WHERE users.slug = '" + c.Params("searchedUser") + "' group by (users.name, users.slug, tweets.tweet,tweets.id, tweets.created_at, tweets.like_count)  order by tweets.created_at DESC;").Scan(&tweets)
+	result := db.Raw("Select users.name, users.slug, tweets.id, tweets.tweet, tweets.created_at, tweets.like_count, tweet_infos.liked_user_id FROM tweets LEFT JOIN users ON users.id = tweets.user_id LEFT JOIN tweet_infos ON tweet_infos.tweet_id = tweets.id WHERE users.slug = '" + c.Params("searchedUser") + "' group by (users.name, users.slug, tweets.tweet,tweets.id, tweets.created_at, tweets.like_count, tweet_infos.liked_user_id)  order by tweets.created_at DESC;").Scan(&tweets)
 	totalTweets := result.RowsAffected
 
 	searchedUserInfo := types.Users{} //User Info belonging to the slug
@@ -88,7 +88,8 @@ func Profile(c *fiber.Ctx) error {
 		"WhoToFollow":    whoToFollowUsers,
 		"FollowingCount": followingCount,
 		"FollowerCount":  followerCount,
-		//TODO: LIKED BUTONU KIRMIZI YAP
+		"LoggedInUser":   loggedInUser,
+		//TODO: Turn liked button from gray to red if logged in user has clicked
 	})
 }
 

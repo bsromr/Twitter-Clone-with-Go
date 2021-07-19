@@ -178,7 +178,8 @@
                   <i class="octicon octicon-sync" aria-hidden="true"></i><span> 64</span>
                 </a>
                 <a class="tweet-footer-btn" href="/{{ $.Slug }}/likeTweett/{{ $k.ID }}">
-                  {{ if  }}
+                  
+                  {{ $.LoggedInUser.ID  }} {{ $k.ID}}
                   <i class="octicon octicon-heart" aria-hidden="true"></i>
                   <span>{{ $k.LikeCount }}</span>
                 </a>
