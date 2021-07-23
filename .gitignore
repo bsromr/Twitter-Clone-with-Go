@@ -1,3 +1,5 @@
 .env
 .idea
 cloneTwitter
+go.mod
+go.sum
