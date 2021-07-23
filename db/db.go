@@ -1,30 +1,21 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"os"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/jackc/pgx/v4"
 )
 
-var DB *gorm.DB
+var DB *pgx.Conn
 
 func Connect() {
-	db, err := gorm.Open("postgres", fmt.Sprintf("user=%v password=%v dbname=%v sslmode=%v ",
-		os.Getenv("DATABASE_USER"),
-		os.Getenv("DATABASE_PASSWORD"),
-		os.Getenv("DATABASE_NAME"),
-		os.Getenv("SSLMODE"),
-	),
-	)
+	db, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		panic(err)
 	}
+	//defer db.Close(context.Background())
 	DB = db
 	fmt.Println("DATABASE::CONNECTED")
-}
-
-func Migrate(tables ...interface{}) *gorm.DB {
-	return DB.AutoMigrate(tables...)
 }

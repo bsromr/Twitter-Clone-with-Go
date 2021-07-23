@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"regexp"
@@ -21,7 +23,7 @@ func RegisterUser(c *fiber.Ctx) error {
 	users := new(types.Users)
 
 	//check if the user email exist on db.
-	db.Where("email = ? ", c.FormValue("email")).Find(&users)
+	err := db.QueryRow(context.Background(), "select id, email from users where email=$1", c.FormValue("email")).Scan(&users.ID, &users.Email)
 	if users.ID != 0 {
 		return c.Render("signup", fiber.Map{
 			"CantRegister": true,
@@ -39,8 +41,11 @@ func RegisterUser(c *fiber.Ctx) error {
 		log.Fatal(err)
 	}
 	users.Slug = reg.ReplaceAllString(strings.ToLower(strings.ReplaceAll(users.Name, " ", "")+strconv.Itoa(rand.Intn(10000))), "")
-
-	db.Create(&users)
+	fmt.Println(time.Now(), c.Params("name"), c.Params("email"),c.Params("phone"),c.Params("password"), users.Slug)
+	_, err = db.Exec(context.Background(),"INSERT INTO users(created_at, updated_at, name, email, phone, password, slug) values ($1,$2,$3,$4,$5,$6,$7)", time.Now(), time.Now(), c.Params("name"), c.Params("email"),c.Params("phone"),c.Params("password"), users.Slug)
+	if err != nil {
+		panic(err)
+	}
 	return c.Render("signup", fiber.Map{
 		"Situation": true,
 	})

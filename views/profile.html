@@ -179,7 +179,6 @@
                 </a>
                 <a class="tweet-footer-btn" href="/{{ $.Slug }}/likeTweett/{{ $k.ID }}">
                   
-                  <!--{{ $.LoggedInUser.ID  }} {{ $k.ID}} -->
                   {{ if eq $.LoggedInUser.ID $k.Liked_user_id }}
                       <i class="octicon octicon-heart" aria-hidden="true" style="color:red"></i>
                       <span>{{ $k.LikeCount }}</span>
