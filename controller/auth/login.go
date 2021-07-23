@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -21,7 +20,7 @@ func LoginUser(c *fiber.Ctx) error {
 		return err
 	}
 	db := database.DB
-	err := db.QueryRow(context.Background(), "select email, password from users where email=$1, password=$2", users.Email, users.Password).Scan(&users.ID, &users.Name, &users.Created_at,&users.Updated_at, &users.Deleted_at, &users.Email,&users.Password, &users.Slug)
+	err := db.QueryRow(context.Background(), "select * from users where email=$1 and password=$2", users.Email, users.Password).Scan(&users.ID, &users.Created_at,&users.Updated_at, &users.Deleted_at, &users.Name, &users.Email, &users.Phone, &users.Password, &users.Slug)
 	if users.ID == 0 {
 		return c.Render("login", fiber.Map{
 			"Unauthorized": true,
@@ -47,5 +46,5 @@ func LoginUser(c *fiber.Ctx) error {
 		HTTPOnly: true,
 	}
 	c.Cookie(&cookie)
-	return c.Redirect("home", http.StatusMovedPermanently)
+	return c.Redirect("home")
 }

@@ -1,9 +1,16 @@
 package main
 
 import (
+	"context"
+	"github.com/bsromr/cloneTwitter/controller/auth"
 	_ "github.com/bsromr/cloneTwitter/db"
+	database "github.com/bsromr/cloneTwitter/db"
 	"github.com/bsromr/cloneTwitter/db/types"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"log"
+	"strconv"
+	"time"
 )
 
 func HomePage(c *fiber.Ctx) error {
@@ -36,88 +43,120 @@ func Home(c *fiber.Ctx) error {
 }
 
 func Tweet(c *fiber.Ctx) error {
-	/*tweet := types.Tweets{}
+	tweet := types.Tweets{}
 	if err := c.BodyParser(&tweet); err != nil {
 		return err
 	}
 	db := database.DB
-	user := getUserIdFromCookie(c)
+	activeUser := getUserIdFromCookie(c)
 
-	tweet.User_id = int(user.ID)
+	tweet.User_id = int(activeUser.ID)
 	//log.Println("Tweet: ", tweet.Tweet, "User Id: ", user.ID)
-	db.Create(&tweet)
-	_, err = db.Exec(context.Background(),"INSERT INTO tweets(created_at, updated_at, name, email, phone, password, slug) values ($1,$2,$3,$4,$5,$6,$7)", time.Now(), time.Now(), c.Params("name"), c.Params("phone"),c.Params("password"), users.Slug)
-	*/
-	return c.Redirect("home", fiber.StatusMovedPermanently)
+	//db.Create(&tweet)
+	_, err := db.Exec(context.Background(),"INSERT INTO tweets(created_at, updated_at, user_id, tweet, like_count) values ($1,$2,$3,$4,$5)", time.Now(),time.Now(), activeUser.ID ,c.FormValue("tweet"), 0)
+	if err != nil{
+		log.Fatal(err)
+	}
+	return c.Redirect("home")
 }
 
 func Profile(c *fiber.Ctx) error {
-	/*
-	db := db.DB
+	db := database.DB
 	//log.Println(utils.ImmutableString(c.Params("foo")))
-
+	var countTweets int
 	loggedInUser := getUserIdFromCookie(c)
+	var user = types.Users{}
+	var tweet = types.Tweets{} //Tweets
+	var tweets []types.Tweets
+	//var tweet_info = types.Tweet_Info{}
+	rows, err := db.Query(context.Background(), "Select users.name, users.slug, tweets.id, tweets.tweet, tweets.created_at, tweets.like_count FROM tweets LEFT JOIN users ON users.id = tweets.user_id WHERE users.slug = $1 order by tweets.created_at DESC;", c.Params("searchedUser"))
+	if err != nil{
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next(){
+		if err := rows.Scan(&user.Name, &user.Slug, &tweet.ID, &tweet.Tweet, &tweet.Created_at, &tweet.LikeCount); err != nil{
+			log.Fatal(err)
+		}
+		countTweets++
+		tweets = append(tweets, tweet)
+	}
+	searchedUser := types.Users{} //User Info belonging to the slug
+	db.QueryRow(context.Background(),"select id,created_at,name,slug from users where slug = $1", c.Params("searchedUser")).Scan(&searchedUser.ID,&searchedUser.Created_at,&searchedUser.Name,&searchedUser.Slug)
 
-	var tweets = []types.Tweets{} //Tweets
-	result := db.Raw("Select users.name, users.slug, tweets.id, tweets.tweet, tweets.created_at, tweets.like_count, tweet_infos.liked_user_id FROM tweets LEFT JOIN users ON users.id = tweets.user_id LEFT JOIN tweet_infos ON tweet_infos.tweet_id = tweets.id WHERE users.slug = '" + c.Params("searchedUser") + "'  order by tweets.created_at DESC;").Scan(&tweets)
-	totalTweets := result.RowsAffected
+	//WHO TO FOLLOW
+	var whoToFollowUser types.Users //Who to follow
+	var whoToFollowUsers []types.Users
+	wtfUserRows, err := db.Query(context.Background(),"SELECT name,slug from users where id <> $1 order by RANDOM() limit 3", searchedUser.ID)
+	if err != nil{
+		log.Fatal(err)
+	}
+	defer wtfUserRows.Close()
+	for wtfUserRows.Next(){
+		if err := wtfUserRows.Scan(&whoToFollowUser.Name, &whoToFollowUser.Slug); err != nil{
+			log.Fatal(err)
+		}
+		whoToFollowUsers = append(whoToFollowUsers, whoToFollowUser)
+	}
 
-	searchedUserInfo := types.Users{} //User Info belonging to the slug
-	db.Where("slug = ?", c.Params("searchedUser")).First(&searchedUserInfo)
-
-	var whoToFollowUsers = []types.Users{} //Who to follow
-	db.Raw("SELECT * from users where id <> ? order by RANDOM() limit 3", searchedUserInfo.ID).Scan(&whoToFollowUsers)
-
+	//Following/Follower Count
 	var followingCount int64
-	db.Raw("SELECT COUNT(*) as count FROM relationships JOIN users ON relationships.follower_id = users.id WHERE users.slug = '" + c.Params("searchedUser") + "' ").Count(&followingCount)
-
+	db.QueryRow(context.Background(),"SELECT COUNT(*) as count FROM relationships JOIN users ON relationships.follower_id = users.id WHERE users.slug = $1", c.Params("searchedUser")).Scan(&followingCount)
 	var followerCount int64
-	db.Raw("SELECT COUNT(*) FROM relationships JOIN users ON relationships.followed_id = users.id WHERE users.slug = '" + c.Params("searchedUser") + "' ").Count(&followerCount)
+	db.QueryRow(context.Background(),"SELECT COUNT(*) FROM relationships JOIN users ON relationships.followed_id = users.id WHERE users.slug = $1", c.Params("searchedUser")).Scan(&followerCount)
 
 	return c.Render("profile", fiber.Map{
-		"Username":       searchedUserInfo.Name,
-		"Slug":           searchedUserInfo.Slug,
-		"CreatedAt":      searchedUserInfo.CreatedAt,
-		"UserTweets":     tweets,
-		"TotalTweets":    totalTweets,
+		"Username":       searchedUser.Name,
+		"Slug":           searchedUser.Slug,
+		"CreatedAt":      searchedUser.Created_at,
+		"UserTweets": tweets,
+		"TotalTweets": countTweets,
 		"WhoToFollow":    whoToFollowUsers,
 		"FollowingCount": followingCount,
 		"FollowerCount":  followerCount,
 		"LoggedInUser":   loggedInUser,
-		//TODO: Turn liked button from gray to red if logged in user has clicked
 	})
-	*/
-	return nil
 }
 
 func LikeTweet(c *fiber.Ctx) error {
 	//fmt.Println("searched user ID: ", c.Params("searchedUser"), "seçilen tweet id: ", c.Params("likedTweetID"))
-	/*db := db.DB
-
+	db := database.DB
 	onlineUser := getUserIdFromCookie(c)
 	//	fmt.Println("Aktif kullanıcı id: ", onlineUser.ID)
 
 	tweet_infos := types.Tweet_Info{}
 	tweet_infos.Tweet_id, _ = strconv.Atoi(c.Params("likedTweetID"))
 	tweet_infos.Liked_user_id = int(onlineUser.ID)
-
-	result := db.Where("tweet_id = ? and liked_user_id = ? ", c.Params("likedTweetID"), onlineUser.ID).First(&tweet_infos)
-	if result.RowsAffected > 0 {
+	var exists bool
+	db.QueryRow(context.Background(),"SELECT EXISTS(Select tweet_id, liked_user_id from tweet_infos where tweet_id = $1 and liked_user_id = $2)", c.Params("likedTweetID"), onlineUser.ID).Scan(&exists)
+	if exists {
 		//fmt.Println("Silinme işlemi uygulanacak")
-		db.Unscoped().Where("tweet_id = ? and liked_user_id = ?", c.Params("likedTweetID"), onlineUser.ID).Delete(&tweet_infos)
-		db.Exec("UPDATE tweets SET like_count = tweets.like_count - 1 where id = ?", c.Params("likedTweetID")) //decrease count of liked tweet
+		_,err := db.Exec(context.Background(),"Delete from tweet_infos where tweet_id = $1 and liked_user_id = $2", c.Params("likedTweetID"), onlineUser.ID)
+		if err != nil{
+			log.Fatal(err)
+		}
+		_, err = db.Exec(context.Background(),"UPDATE tweets SET like_count = tweets.like_count - 1 where id = $1", c.Params("likedTweetID")) //decrease count of liked tweet
+		if err != nil{
+			log.Fatal(err)
+		}
 		return c.Redirect("/" + c.Params("searchedUser"))
 	}
 
-	db.Create(&tweet_infos)
-	db.Exec("UPDATE tweets SET like_count = tweets.like_count + 1 where id = ?", c.Params("likedTweetID")) //increase count of liked tweet
-	*/return c.Redirect("/" + c.Params("searchedUser"))
+	_, err := db.Exec(context.Background(),"INSERT INTO tweet_infos(tweet_id, liked_user_id) values($1, $2)", c.Params("likedTweetID"), onlineUser.ID)
+	if err != nil{
+		log.Fatal(err)
+	}
+	_, err = db.Exec(context.Background(),"UPDATE tweets SET like_count = tweets.like_count + 1 where id = $1", c.Params("likedTweetID")) //increase count of liked tweet
+	if err != nil{
+		log.Fatal(err)
+	}
+	return c.Redirect("/" + c.Params("searchedUser"))
 }
 
 func Follow(c *fiber.Ctx) error {
 	//log.Println("UUUID= ", utils.ImmutableString(c.Params("uid")))
-	/*var err error
-	db := db.DB
+	var err error
+	db := database.DB
 	follow := types.Relationships{}
 
 	activeUser := getUserIdFromCookie(c)
@@ -128,37 +167,39 @@ func Follow(c *fiber.Ctx) error {
 	}
 	follow.FollowerId = int(activeUser.ID)
 
-	result := db.Where("follower_id = ? AND followed_id = ?", activeUser.ID, follow.FollowedId).First(&follow)
-	if result.RowsAffected > 0 {
-		return c.Redirect("/"+activeUser.Slug+"", fiber.StatusMovedPermanently)
+	var exists bool
+	db.QueryRow(context.Background(),"SELECT EXISTS(select follower_id, followed_id FROM relationships where follower_id = $1 AND followed_id = $2)", activeUser.ID, follow.FollowedId).Scan(&exists)
+	if exists{
+		_, err := db.Exec(context.Background(), "delete from relationships WHERE follower_id = $1 AND followed_id = $2", activeUser.ID, follow.FollowedId)
+		if err != nil{
+			log.Fatal(err)
+		}
+	}else{
+		_, err := db.Exec(context.Background(), "INSERT INTO relationships(created_at, updated_at, follower_id, followed_id) values($1,$2,$3,$4)", time.Now(), time.Now(), activeUser.ID, follow.FollowedId)
+		if err != nil{
+			log.Fatal(err)
+		}
 	}
-
-	db.Create(&follow)
-
-	return c.Redirect("/"+activeUser.Slug+"", fiber.StatusMovedPermanently)*/
-	return nil
+	return c.Redirect("/"+activeUser.Slug+"")
 }
 
 func getUserIdFromCookie(c *fiber.Ctx) types.Users {
-	/*cookie := c.Cookies("jwt")
+	cookie := c.Cookies("jwt")
 	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(auth.SecretKey), nil
 	})
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
-		c.Redirect("login", fiber.StatusMovedPermanently)
+		c.Redirect("login")
 		return types.Users{}
 	}
 	claims := token.Claims.(*jwt.StandardClaims)
 	var user types.Users
 	db := database.DB
-	db.Where("id = ?", claims.Issuer).First(&user)
+	db.QueryRow(context.Background(),"SELECT id,created_at,updated_at,name,email,phone,slug FROM users WHERE id = $1", claims.Issuer).Scan(&user.ID,&user.Created_at,&user.Updated_at, &user.Name,&user.Email,&user.Phone,&user.Slug)
 	if user.ID == 0 {
-		log.Println("siktir çekildi")
-		c.Redirect("login", fiber.StatusMovedPermanently)
+		c.Redirect("login")
 		return types.Users{}
 	}
-
-	return user*/
-	return types.Users{}
+	return user
 }

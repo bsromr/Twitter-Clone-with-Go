@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"regexp"
@@ -41,8 +40,7 @@ func RegisterUser(c *fiber.Ctx) error {
 		log.Fatal(err)
 	}
 	users.Slug = reg.ReplaceAllString(strings.ToLower(strings.ReplaceAll(users.Name, " ", "")+strconv.Itoa(rand.Intn(10000))), "")
-	fmt.Println(time.Now(), c.Params("name"), c.Params("email"),c.Params("phone"),c.Params("password"), users.Slug)
-	_, err = db.Exec(context.Background(),"INSERT INTO users(created_at, updated_at, name, email, phone, password, slug) values ($1,$2,$3,$4,$5,$6,$7)", time.Now(), time.Now(), c.Params("name"), c.Params("email"),c.Params("phone"),c.Params("password"), users.Slug)
+	_, err = db.Exec(context.Background(),"INSERT INTO users(created_at, updated_at, name, email, phone, password, slug) values ($1,$2,$3,$4,$5,$6,$7)", time.Now(), time.Now(), users.Name, users.Email,users.Phone,users.Password, users.Slug)
 	if err != nil {
 		panic(err)
 	}
