@@ -178,8 +178,21 @@
                   <i class="octicon octicon-sync" aria-hidden="true"></i><span> 64</span>
                 </a>
                 <a class="tweet-footer-btn" href="/{{ $.Slug }}/likeTweett/{{ $k.ID }}">
-                  <i class="octicon octicon-heart" aria-hidden="true" ></i>
-                  <span>{{ $k.LikeCount }}</span>
+                  {{ $red := false }}
+                  {{ range $i, $_ := $k.Liked_user_id }}
+                    {{ if eq (index $k.Liked_user_id $i) $.LoggedInUser.ID}}
+                      {{ $red = true }}
+                    {{end}}
+                  {{end}}
+
+                  {{ if $red }}
+
+                    <i class="octicon octicon-heart" aria-hidden="true" style="color:rgb(224, 36, 94)"></i>
+                    <span  style="color:rgb(224, 36, 94)">{{ $k.LikeCount }}</span>
+                  {{else}}
+                    <i class="octicon octicon-heart" aria-hidden="true" ></i>
+                    <span>{{ $k.LikeCount }}</span>
+                  {{end}}
                 </a>
                 <a class="tweet-footer-btn">
                   <i class="octicon octicon-mail" aria-hidden="true"></i><span> 155</span>

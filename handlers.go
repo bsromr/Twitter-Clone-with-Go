@@ -69,16 +69,18 @@ func Profile(c *fiber.Ctx) error {
 	var tweet = types.Tweets{} //Tweets
 	var tweets []types.Tweets
 	//var tweet_info = types.Tweet_Info{}
-	rows, err := db.Query(context.Background(), "Select users.name, users.slug, tweets.id, tweets.tweet, tweets.created_at, tweets.like_count FROM tweets LEFT JOIN users ON users.id = tweets.user_id WHERE users.slug = $1 order by tweets.created_at DESC;", c.Params("searchedUser"))
+
+	rows, err := db.Query(context.Background(), "Select users.name, users.slug, tweets.id, tweets.tweet, tweets.created_at, tweets.liked_user_id FROM tweets LEFT JOIN users ON users.id = tweets.user_id WHERE users.slug = $1 order by tweets.created_at DESC;", c.Params("searchedUser"))
 	if err != nil{
 		log.Fatal(err)
 	}
 	defer rows.Close()
 	for rows.Next(){
-		if err := rows.Scan(&user.Name, &user.Slug, &tweet.ID, &tweet.Tweet, &tweet.Created_at, &tweet.LikeCount); err != nil{
+		if err := rows.Scan(&user.Name, &user.Slug, &tweet.ID, &tweet.Tweet, &tweet.Created_at, &tweet.Liked_user_id); err != nil{
 			log.Fatal(err)
 		}
 		countTweets++
+		tweet.LikeCount = len(tweet.Liked_user_id)
 		tweets = append(tweets, tweet)
 	}
 	searchedUser := types.Users{} //User Info belonging to the slug
@@ -109,8 +111,8 @@ func Profile(c *fiber.Ctx) error {
 		"Username":       searchedUser.Name,
 		"Slug":           searchedUser.Slug,
 		"CreatedAt":      searchedUser.Created_at,
-		"UserTweets": tweets,
-		"TotalTweets": countTweets,
+		"UserTweets": 	  tweets,
+		"TotalTweets":    countTweets,
 		"WhoToFollow":    whoToFollowUsers,
 		"FollowingCount": followingCount,
 		"FollowerCount":  followerCount,
@@ -124,33 +126,32 @@ func LikeTweet(c *fiber.Ctx) error {
 	onlineUser := getUserIdFromCookie(c)
 	//	fmt.Println("Aktif kullanıcı id: ", onlineUser.ID)
 
-	tweet_infos := types.Tweet_Info{}
-	tweet_infos.Tweet_id, _ = strconv.Atoi(c.Params("likedTweetID"))
-	tweet_infos.Liked_user_id = int(onlineUser.ID)
-	var exists bool
-	db.QueryRow(context.Background(),"SELECT EXISTS(Select tweet_id, liked_user_id from tweet_infos where tweet_id = $1 and liked_user_id = $2)", c.Params("likedTweetID"), onlineUser.ID).Scan(&exists)
-	if exists {
-		//fmt.Println("Silinme işlemi uygulanacak")
-		_,err := db.Exec(context.Background(),"Delete from tweet_infos where tweet_id = $1 and liked_user_id = $2", c.Params("likedTweetID"), onlineUser.ID)
-		if err != nil{
-			log.Fatal(err)
+	tweets := &types.Tweets{}
+	//Get who liked the tweet
+	db.QueryRow(context.Background(), "SELECT liked_user_id FROM tweets WHERE id = $1", c.Params("likedTweetID")).Scan(&tweets.Liked_user_id)
+	for i, _ := range tweets.Liked_user_id {
+		if tweets.Liked_user_id[i] == onlineUser.ID {
+			tweets.Liked_user_id = append(tweets.Liked_user_id[:i], tweets.Liked_user_id[i+1:]...) //delete user from liked_user's slice
+			//fmt.Println(tweets.Liked_user_id)
+			_, err := db.Exec(context.Background(),"UPDATE tweets SET liked_user_id = $1 WHERE id = $2", tweets.Liked_user_id, c.Params("likedTweetID"))
+			if err != nil{
+				log.Fatal(err)
+			}
+			return c.Redirect("/" + c.Params("searchedUser"))
 		}
-		_, err = db.Exec(context.Background(),"UPDATE tweets SET like_count = tweets.like_count - 1 where id = $1", c.Params("likedTweetID")) //decrease count of liked tweet
-		if err != nil{
-			log.Fatal(err)
-		}
-		return c.Redirect("/" + c.Params("searchedUser"))
+	}
+	tweets.Liked_user_id = append(tweets.Liked_user_id, onlineUser.ID)
+	_,err := db.Exec(context.Background(), "UPDATE tweets SET liked_user_id = $1 WHERE id = $2", tweets.Liked_user_id,  c.Params("likedTweetID"))
+	if err != nil{
+		log.Fatal(err)
 	}
 
-	_, err := db.Exec(context.Background(),"INSERT INTO tweet_infos(tweet_id, liked_user_id) values($1, $2)", c.Params("likedTweetID"), onlineUser.ID)
-	if err != nil{
-		log.Fatal(err)
-	}
-	_, err = db.Exec(context.Background(),"UPDATE tweets SET like_count = tweets.like_count + 1 where id = $1", c.Params("likedTweetID")) //increase count of liked tweet
-	if err != nil{
-		log.Fatal(err)
-	}
 	return c.Redirect("/" + c.Params("searchedUser"))
+}
+
+func MentionTweet(c *fiber.Ctx) error {
+
+	return c.Redirect("/")
 }
 
 func Follow(c *fiber.Ctx) error {

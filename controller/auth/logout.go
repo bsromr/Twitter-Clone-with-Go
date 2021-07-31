@@ -14,5 +14,5 @@ func Logout(c *fiber.Ctx) error {
 		HTTPOnly: true,
 	}
 	c.Cookie(&cookie)
-	return c.Redirect("/", fiber.StatusOK)
+	return c.Redirect("/index")
 }

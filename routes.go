@@ -12,11 +12,13 @@ func SetRoutes(app *fiber.App) {
 	app.Get("signup", Signup)
 	app.Get("home", Home)
 	app.Get("/:searchedUser", Profile)
-	app.Get("logout", auth.Logout)
 	app.Get("/:searchedUser/likeTweett/:likedTweetID", LikeTweet)
+	app.Get("/:searchedUser/status/:tweetID", MentionTweet)
 	/*POSTS*/
 	app.Post("registeruser", auth.RegisterUser)
 	app.Post("loginUser", auth.LoginUser)
 	app.Post("tweet", Tweet)
 	app.Post("follow/:uid", Follow)
+	app.Post("logout", auth.Logout)
+
 }
