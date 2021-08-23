@@ -8,12 +8,13 @@ import (
 func SetRoutes(app *fiber.App) {
 	/*GETS*/
 	app.Get("/", HomePage)
-	app.Get("login", Login)
-	app.Get("signup", Signup)
+	app.Get("login", LoginPage)
+	app.Get("signup", SignupPage)
 	app.Get("home", Home)
-	app.Get("/:searchedUser", Profile)
+	app.Get("/:searchedUser", ProfilePage)
 	app.Get("/:searchedUser/likeTweett/:likedTweetID", LikeTweet)
-	app.Get("/:searchedUser/status/:tweetID", MentionTweet)
+	app.Get("/:searchedUser/status/:tweetID", MentionPage)
+	app.Get("/:searchedUser/status/:tweetID/mention", MentionTweet)
 	/*POSTS*/
 	app.Post("registeruser", auth.RegisterUser)
 	app.Post("loginUser", auth.LoginUser)

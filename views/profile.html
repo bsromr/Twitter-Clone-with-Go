@@ -9,7 +9,7 @@
   <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'>
   <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.min.css'>
   <!-- Custom css-->
-  <link rel="stylesheet" href="css/profile.css">
+  <link rel="stylesheet" href="/css/profile.css">
   <link rel = "icon" href ="https://www.iics.k12.tr/wp-content/uploads/2019/07/twitter-logo-png-twitter-logo.png" type = "image/x-icon">
   <link rel = "icon" href ="https://www.iics.k12.tr/wp-content/uploads/2019/07/twitter-logo-png-twitter-logo.png" type = "image/x-icon">
 
@@ -18,52 +18,52 @@
 
 <body>
   <!-- Fixed top navbar -->
-<nav class="navbar navbar-toggleable-md fixed-top">
-  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+  <nav class="navbar navbar-toggleable-md fixed-top">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-  <div class="collapse navbar-collapse container">
-    <!-- Navbar navigation links -->
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="/home"><i class="octicon octicon-home" aria-hidden="true"></i> Home <span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#"><i class="octicon octicon-zap"></i> Moments</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#"><i class="octicon octicon-bell"></i> Notifications</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#"><i class="octicon octicon-inbox"></i> Messages</a>
-      </li>
-    </ul>
-    <!-- END: Navbar navigation links -->
-    <!-- Navbar Search form -->
-    <form class="navbar-form" role="search">
-      <div class="input-group">
-        <input type="text" class="form-control input-search" placeholder="Search Twitter" name="srch-term" id="srch-term">
-        <div class="input-group-btn">
-          <button class="btn btn-default btn-search" type="submit"><i class="octicon octicon-search navbar-search-icon"></i></button>
+    <div class="collapse navbar-collapse container">
+      <!-- Navbar navigation links -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/home"><i class="octicon octicon-home" aria-hidden="true"></i> Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="octicon octicon-zap"></i> Moments</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="octicon octicon-bell"></i> Notifications</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="octicon octicon-inbox"></i> Messages</a>
+        </li>
+      </ul>
+      <!-- END: Navbar navigation links -->
+      <!-- Navbar Search form -->
+      <form class="navbar-form" role="search">
+        <div class="input-group">
+          <input type="text" class="form-control input-search" placeholder="Search Twitter" name="srch-term" id="srch-term">
+          <div class="input-group-btn">
+            <button class="btn btn-default btn-search" type="submit"><i class="octicon octicon-search navbar-search-icon"></i></button>
+          </div>
+        </div>
+      </form>
+      <!-- END: Navbar Search form -->
+      <!-- Navbar User menu -->
+      <div class="dropdown navbar-user-dropdown">
+        <button class="btn btn-secondary dropdown-toggle btn-circle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <a class="dropdown-item" href="#">Action</a>
+          <a class="dropdown-item" href="#">Another action</a>
+          <a class="dropdown-item" href="#">Something else here</a>
         </div>
       </div>
-    </form>
-    <!-- END: Navbar Search form -->
-    <!-- Navbar User menu -->
-    <div class="dropdown navbar-user-dropdown">
-      <button class="btn btn-secondary dropdown-toggle btn-circle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item" href="#">Action</a>
-        <a class="dropdown-item" href="#">Another action</a>
-        <a class="dropdown-item" href="#">Something else here</a>
-      </div>
+      <!-- END: Navbar User menu -->
+      <!-- Navbar Tweet button -->
+      <button class="btn btn-search-bar">Tweet</button>
     </div>
-    <!-- END: Navbar User menu -->
-    <!-- Navbar Tweet button -->
-    <button class="btn btn-search-bar">Tweet</button>
-  </div>
-</nav>
+  </nav>
 <!-- END: Fixed top navbar -->
 <div class="main-container">
   <!-- Profile background large image -->
@@ -123,7 +123,7 @@
         <!-- Left column -->
         <div class="profile-header">
           <!-- Header information -->
-          <h3 class="profile-fullname"><a>{{.Username}}<a></h3>
+          <h3 class="profile-fullname"><a>{{.Username}}</a></h3>
           <h2 class="profile-element"><a>@{{.Slug}}</a></h2>
           <a class="profile-element profile-website" hrerf=""><i class="octicon octicon-link"></i>&nbsp;omerbasar.com</a>
           <a class="profile-element profile-website" hrerf=""><i class="octicon octicon-location"></i>&nbsp;Izmir, Turkey</a>
@@ -171,7 +171,7 @@
                 </p>
               </div>
               <div class="tweet-footer">
-                <a class="tweet-footer-btn">
+                <a class="tweet-footer-btn" href="{{ $.Slug }}/status/{{ $k.ID }}">
                   <i class="octicon octicon-comment" aria-hidden="true"></i><span> 18</span>
                 </a>
                 <a class="tweet-footer-btn">
@@ -236,6 +236,7 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
   <script src='https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js'></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>

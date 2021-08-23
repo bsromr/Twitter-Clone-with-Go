@@ -19,12 +19,15 @@ func init() {
 func main() {
 	db.Connect()
 	tmpEngine := html.New("./views", ".html")
-	app := fiber.New(
-		fiber.Config{
-			Views: tmpEngine,
-		})
+	tmpEngine.Reload(true)
+
+	app := fiber.New(fiber.Config{
+		Views: tmpEngine,
+	})
+
+	SetRoutes(app)
+
 	app.Static("/", "./views")
 	//app.Use(logger.New())
-	SetRoutes(app)
 	app.Listen(":3000")
 }

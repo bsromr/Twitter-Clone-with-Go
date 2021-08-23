@@ -9,7 +9,7 @@ import (
 	"github.com/bsromr/cloneTwitter/db/types"
 	"github.com/gofiber/fiber/v2"
 
-	jwt "github.com/form3tech-oss/jwt-go"
+	"github.com/form3tech-oss/jwt-go"
 )
 
 const SecretKey = "secret"
